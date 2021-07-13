@@ -1,0 +1,5 @@
+requests==2.25.1
+plotly @ file:///tmp/build/80754af9/plotly_1610565580232/work
+pandas @ file:///C:/ci/pandas_1624465767060/work
+numpy @ file:///D:/bld/numpy_1624400134018/work
+streamlit==0.84.0
