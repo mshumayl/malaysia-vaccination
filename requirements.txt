@@ -1,5 +1,10 @@
+matplotlib==3.4.2
+numexpr==2.7.3
+numpy==1.21.0
+pandas==1.2.5
+plotly==4.14.3
+python-dateutil==2.8.1
 requests==2.25.1
-plotly @ file:///tmp/build/80754af9/plotly_1610565580232/work
-pandas @ file:///C:/ci/pandas_1624465767060/work
-numpy @ file:///D:/bld/numpy_1624400134018/work
 streamlit==0.84.0
+toml==0.10.2
+tzlocal==2.1
