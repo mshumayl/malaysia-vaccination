@@ -1,5 +1,14 @@
 # %%
 
+"""
+To-do:
+1. Change plot colors
+2. Rename URL
+3. Add choropleth map
+4. Setup: Sidebar ON by default
+"""
+
+
 import requests
 import time
 import pandas as pd
@@ -111,9 +120,9 @@ daily_vaxsum = daily_vax1 + daily_vax2
 
 # FRONT END
 
-st.set_page_config(layout="wide", page_title="Malaysia Vaccination Dashboard")
+st.set_page_config(layout="wide", page_title="Malaysia Vaccination Dashboard", initial_sidebar_state="expanded")
 st.title("MALAYSIA VACCINATION DASHBOARD")
-st.text("Data queried at {} from https://github.com/CITF-Malaysia/citf-public and https://data.world/wnarifin/covid-19-my".format(datetime.now().strftime("%H:%M:%S %d-%m-%Y")))
+st.text("Data queried at {} from: \n1. github.com/CITF-Malaysia/citf-public \n2. data.world/wnarifin/covid-19-my".format(datetime.now().strftime("%H:%M:%S %d-%m-%Y")))
 st.write('--------')
 c1, c2, c3 = st.beta_columns((1, 1, 1))
 st.write('--------')
@@ -164,7 +173,7 @@ chart_vax_state.update_layout(width=1000, height=500)
 chart_vax_state.update_yaxes(range=[0, 100])
 
 
-select = st.sidebar.selectbox('Select which state to view:', country_list, key='1')
+select = st.sidebar.selectbox('Select to view key analytics by state:', country_list, key='1')
 if select == 'Malaysia':
     filtered_df = malaysia_df
 else:
@@ -190,7 +199,7 @@ with c2:
     st.subheader('Deaths in {} Today'.format(select))
     st.write('--------')
     st.title(filtered_df['total_deaths'].iloc[-1])
-    st.subheader('Total Deaths in {} Due to COVID-19'.format(select))
+    st.subheader('Total COVID-19 Deaths in {}'.format(select))
     
 with c3:
     # st.title("%.2f%%  fully vaccinated nationally" %pct_fully_vax_malaysia)
