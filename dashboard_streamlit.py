@@ -1,14 +1,6 @@
 # %%
 
-"""
-To-do:
-1. Change plot colors
-2. Rename URL
-3. Add choropleth map
-4. Setup: Sidebar ON by default
-"""
-
-
+import json
 import requests
 import time
 import pandas as pd
@@ -22,7 +14,6 @@ from datetime import date, datetime
 # %%
 
 #GET DATA
-
 url1 = 'https://raw.githubusercontent.com/CITF-Malaysia/citf-public/main/vaccination/vax_state.csv'
 url2 = 'https://raw.githubusercontent.com/CITF-Malaysia/citf-public/main/vaccination/vax_malaysia.csv'
 url3 = 'https://raw.githubusercontent.com/CITF-Malaysia/citf-public/main/static/population.csv'
@@ -116,6 +107,10 @@ daily_vax1 = vax_malaysia_df['dose1_daily'].iloc[-1]
 daily_vax2 = vax_malaysia_df['dose2_daily'].iloc[-1]
 daily_vaxsum = daily_vax1 + daily_vax2
 
+
+
+
+
 # %%
 
 # FRONT END
@@ -128,9 +123,9 @@ c1, c2, c3 = st.beta_columns((1, 1, 1))
 st.write('--------')
 d1, d2 = st.beta_columns((1, 1))
 # st.write('--------')
-e1, e2, e3 = st.beta_columns((0.2, 0.5, 0.5))
+e1, e2 = st.beta_columns((10, 1))
 st.write('--------')
-f1, f2, f3 = st.beta_columns((0.5, 0.5, 0.5))
+f1, f2 = st.beta_columns((10, 1))
 st.write('--------')
 
 
@@ -154,6 +149,29 @@ country_list = ["Malaysia",
 
 
 # %%
+#GEOJSON
+
+geojson_malaysia = json.load(open('Malaysia.geojson'))
+
+choro_vax_state_df = vax_state_df.groupby('state').tail(1)
+
+# choro_vax_state_df = choro_vax_state_df.rename(columns={'state': 'name'})
+
+state_id_map = {}
+for feature in geojson_malaysia['features']:
+    feature['id'] = feature['properties']['id']
+    state_id_map[feature['properties']['name']] = feature['id']
+    
+# state_id_map['putrajaya'] = state_id_map['putajaya']
+# del state_id_map['putajaya']
+
+choro_vax_state_df['id'] = choro_vax_state_df['state'].apply(lambda x: state_id_map[x])
+
+
+# %%
+
+
+# %%
 
 #Merge dataframes
 
@@ -164,13 +182,7 @@ states_df = pd.merge(cases_state_df, vax_state_df, on=("state", "date"))
 #Clean up states_df columns
 states_df = states_df.rename(columns={'pop_x': 'pop'}).drop(['pop_y'], axis=1)
 # %%
-#Vaccination of all states chart
-chart_vax_state = px.line(vax_state_df,
-              x="date",
-              y="percentage_fully_vaccinated",
-              color='state')
-chart_vax_state.update_layout(width=1000, height=500)
-chart_vax_state.update_yaxes(range=[0, 100])
+
 
 
 select = st.sidebar.selectbox('Select to view key analytics by state:', country_list, key='1')
@@ -184,10 +196,10 @@ else:
 with c1:   
     # filtered_df_percentage = filtered_df["dose2_cumul"] / filtered_df['pop'] * 100
     # st.subheader('{} new cases today in {}, totalling up to {} COVID-19 cases to date.'.format(filtered_df['new_cases'].iloc[-1], select, filtered_df['total_cases'].iloc[-1]))
-    st.title(filtered_df['new_cases'].iloc[-1])
+    st.title('{:.0f}'.format(filtered_df['new_cases'].iloc[-1]))
     st.subheader('New Cases in {} Today'.format(select))
     st.write('--------')
-    st.title(filtered_df['total_cases'].iloc[-1])
+    st.title('{:.0f}'.format(filtered_df['total_cases'].iloc[-1]))
     st.subheader('Total Cases in {} to Date'.format(select))
 
     
@@ -205,7 +217,7 @@ with c3:
     # st.title("%.2f%%  fully vaccinated nationally" %pct_fully_vax_malaysia)
     # st.subheader('{} new vaccinations in {} today, totalling up to {} vaccinations administered.'.format(filtered_df['total_daily'].iloc[-1], select, filtered_df['total_cumul'].iloc[-1]))
     st.title(filtered_df['total_daily'].iloc[-1])
-    st.subheader('Vaccinations Administered in {} Today'.format(select))
+    st.subheader('Vaccines Administered in {} Today'.format(select))
     st.write('--------')
     st.title('{:.2f}%'.format(filtered_df['percentage_fully_vaccinated'].iloc[-1]))
     st.subheader('Fully Vaccinated in {}'.format(select))
@@ -214,9 +226,10 @@ with d1:
     chart_cases_state = px.line(filtered_df,
                         x="date",
                         y="total_cases")
-    chart_cases_state.update_traces(marker_color='rgb(158,202,225)',
-                                    marker_line_color='rgb(8,48,107)',
-                                    marker_line_width=1.5, opacity=0.6)
+    chart_cases_state.update_traces(marker_color='rgb(181, 52, 113)',
+                                    marker_line_color='rgb(181, 52, 113)',
+                                    marker_line_width=2.5, opacity=1)
+    # chart_cases_state.update_layout(margin={"r":10,"t":10,"l":10,"b":10})
     st.header("COVID-19 cases in {}".format(select))
     st.write(chart_cases_state)
 
@@ -224,26 +237,43 @@ with d2:
     chart_new_cases_state = px.bar(filtered_df,
                                     x='date',
                                     y='new_cases')
-    chart_new_cases_state.update_traces(marker_color='rgb(158,202,225)',
-                                        marker_line_color='rgb(8,48,107)',
-                                        marker_line_width=0, opacity=0.6)
+    chart_new_cases_state.update_traces(marker_color='rgb(181, 52, 113)',
+                                        marker_line_color='rgb(181, 52, 113)',
+                                        marker_line_width=0, opacity=1)
+    # chart_cases_state.update_layout(margin={"r":10,"t":10,"l":10,"b":10})
     st.header("Daily new cases in {}".format(select))
     st.write(chart_new_cases_state)
 
-with e2:
+with e1:
+    #Vaccination of all states chart
+    chart_vax_state = px.line(vax_state_df,
+              x="date",
+              y="percentage_fully_vaccinated",
+              color='state')
+    chart_vax_state.update_layout(width=1300, height=500, margin={"r":0,"t":0,"l":0,"b":0})
+    chart_vax_state.update_yaxes(range=[0, 100])
     st.header("Daily new vaccination by state")
-    st.text('Enlarge to view individual states')
+    st.text('Click on legend to view by state')
     st.write(chart_vax_state)
-    
+
+
 with f1:
-    # filtered_df_count = filtered_df["dose2_cumul"]   
-    # st.title("{} vaccinated in {}".format(filtered_df_count.iloc[-1], select))
-    st.text(" ")
+    choro = px.choropleth(choro_vax_state_df, 
+                      locations='id', 
+                      geojson=geojson_malaysia, 
+                      color='percentage_fully_vaccinated',
+                      hover_name='state',
+                      labels='Percentage Fully Vaccinated',
+                      color_continuous_scale="RdPu_r",
+                      template='plotly_dark',
+                      range_color=(0,100))
+    choro.update_geos(fitbounds='locations', visible=False)
+    choro.update_layout(width=1300, height=500, margin={"r":0,"t":0,"l":0,"b":0})
+    st.header("Nationwide vaccination map")
+    st.text("Hover to view percentage")
+    st.write(choro)
 
 with f2:
-    st.text(" ")
-
-with f3:
     st.text(" ")
 
 
